@@ -48,7 +48,8 @@ class RedisCache(BaseCache):
         namespace: str,
         collection_name: str,
         address: str = DEFAULT_ADDRESS,
-        connection: Redis | None = None,
+        connection: KeyDB | None = None,
+        expire_after: float = 1,
         **kwargs: Any,
     ):
         # Pop off BaseCache kwargs and use the rest as Redis connection kwargs
@@ -57,6 +58,7 @@ class RedisCache(BaseCache):
         self._connection = connection
         self.connection_kwargs = get_valid_kwargs(Redis.__init__, kwargs)
         self.hash_key = f'{namespace}:{collection_name}'
+        self.expire_after = expire_after
 
     async def get_connection(self):
         """Lazy-initialize redis connection"""
@@ -113,3 +115,4 @@ class RedisCache(BaseCache):
             key,
             self.serialize(item),
         )
+        await connection.execute_command(f'EXPIREMEMBER {self.hash_key} {key} {self.expire_after}')
