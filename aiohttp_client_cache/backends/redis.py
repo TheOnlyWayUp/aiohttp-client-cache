@@ -48,7 +48,7 @@ class RedisCache(BaseCache):
         namespace: str,
         collection_name: str,
         address: str = DEFAULT_ADDRESS,
-        connection: KeyDB | None = None,
+        connection: Redis | None = None,
         expire_after: float = 1,
         **kwargs: Any,
     ):
@@ -113,6 +113,6 @@ class RedisCache(BaseCache):
         await connection.hset(
             self.hash_key,
             key,
-            self.serialize(item),
+            self.serialize(item),  # type: ignore
         )
         await connection.execute_command(f'EXPIREMEMBER {self.hash_key} {key} {self.expire_after}')
